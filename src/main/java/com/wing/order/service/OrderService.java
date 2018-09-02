@@ -1,5 +1,6 @@
 package com.wing.order.service;
 
+import com.wing.order.client.ProductClient;
 import com.wing.order.converter.OrderMaster2OrderVOConverter;
 import com.wing.order.entity.OrderDetail;
 import com.wing.order.entity.OrderMaster;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -42,14 +44,9 @@ public class OrderService {
     @Autowired
     private OrderMasterRepository orderMasterRepository;
 
-//    @Autowired
-////    private PayService payService;
+    @Autowired
+    private ProductClient productClient;
 
-//    @Autowired
-//    private PushMessageService pushMessageService;
-//
-//    @Autowired
-//    private WebSocket webSocket;
 
     @Transactional
     public OrderVO create(OrderVO orderVO) {
@@ -88,10 +85,11 @@ public class OrderService {
 
 
         //4. 扣库存
-        List<CartDTO> cartDTOList = orderVO.getOrderDetails().stream().map(e ->
+        List<CartDTO> carts = orderVO.getOrderDetails().stream().map(e ->
                 new CartDTO(e.getProductId(), e.getProductQuantity())
         ).collect(Collectors.toList());
-        productService.decreaseStock(cartDTOList);
+
+        productClient.decreaseStock(carts);
 
 //        //发送websocket消息
 //        webSocket.sendMessage(orderDTO.getOrderId());
@@ -158,30 +156,24 @@ public class OrderService {
 //        return orderDTO;
 //    }
 
-//    @Override
-//    @Transactional
-//    public OrderDTO finish(OrderDTO orderDTO) {
-//        //判断订单状态
-//        if (!orderDTO.getOrderStatus().equals(OrderStatusEnum.NEW.getCode())) {
-//            log.error("【完结订单】订单状态不正确, orderId={}, orderStatus={}", orderDTO.getOrderId(), orderDTO.getOrderStatus());
-//            throw new SellException(ResultEnum.ORDER_STATUS_ERROR);
-//        }
-//
-//        //修改订单状态
-//        orderDTO.setOrderStatus(OrderStatusEnum.FINISHED.getCode());
-//        OrderMaster orderMaster = new OrderMaster();
-//        BeanUtils.copyProperties(orderDTO, orderMaster);
-//        OrderMaster updateResult = orderMasterRepository.save(orderMaster);
-//        if (updateResult == null) {
-//            log.error("【完结订单】更新失败, orderMaster={}", orderMaster);
-//            throw new SellException(ResultEnum.ORDER_UPDATE_FAIL);
-//        }
-//
-//        //推送微信模版消息
-//        pushMessageService.orderStatus(orderDTO);
-//
-//        return orderDTO;
-//    }
+    @Transactional
+    public OrderVO finish(OrderVO order) {
+        //判断订单状态
+        if (!order.getOrderStatus().equals(OrderStatusEnum.NEW.getCode())) {
+            log.error("【完结订单】订单状态不正确, orderId={}, orderStatus={}", order.getOrderId(), order.getOrderStatus());
+            throw new SellException(ResultEnum.ORDER_STATUS_ERROR);
+        }
+
+        //修改订单状态
+        OrderMaster orderMaster = orderMasterRepository.findById(order.getOrderId()).orElseThrow(() -> new SellException(ResultEnum.ORDER_NOT_EXIST));
+        orderMaster.setOrderStatus(OrderStatusEnum.FINISHED);
+        OrderMaster updateResult = orderMasterRepository.save(orderMaster);
+        if (updateResult == null) {
+            log.error("【完结订单】更新失败, orderMaster={}", orderMaster);
+            throw new SellException(ResultEnum.ORDER_UPDATE_FAIL);
+        }
+        return order;
+    }
 
 //    @Override
 //    @Transactional

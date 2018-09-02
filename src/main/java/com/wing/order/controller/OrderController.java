@@ -57,20 +57,13 @@ public class OrderController {
         return ResultVOUtil.success(orderDTOPage.getContent());
     }
 
+    //订单列表
+    @PostMapping("/finish")
+    public ResultVO<OrderVO> finish(OrderVO order) {
+        OrderVO orderVO = orderService.finish(order);
+        return ResultVOUtil.success(orderVO);
+    }
 
-//    //订单详情
-//    @GetMapping("/detail")
-//    public ResultVO<OrderVO> detail(@RequestParam("openid") String openid,
-//                                     @RequestParam("orderId") String orderId) {
-//        OrderDTO orderDTO = buyerService.findOrderOne(openid, orderId);
-//        return ResultVOUtil.success(orderDTO);
-//    }
-//
-//    //取消订单
-//    @PostMapping("/cancel")
-//    public ResultVO cancel(@RequestParam("openid") String openid,
-//                           @RequestParam("orderId") String orderId) {
-//        buyerService.cancelOrder(openid, orderId);
-//        return ResultVOUtil.success();
-//    }
+
+
 }
