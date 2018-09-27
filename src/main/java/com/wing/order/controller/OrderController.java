@@ -1,6 +1,8 @@
 package com.wing.order.controller;
 
+import com.wing.order.client.ProductClient;
 import com.wing.order.converter.OrderRequestToOrderVOConverter;
+import com.wing.order.entity.ProductInfo;
 import com.wing.order.enums.ResultEnum;
 import com.wing.order.exception.SellException;
 import com.wing.order.service.OrderService;
@@ -28,9 +30,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
-//
-//    @Autowired
-//    private BuyerService buyerService;
+
+    @Autowired
+    private ProductClient productClient;
 
     //创建订单
     @PostMapping
@@ -62,6 +64,12 @@ public class OrderController {
     public ResultVO<OrderVO> finish(OrderVO order) {
         OrderVO orderVO = orderService.finish(order);
         return ResultVOUtil.success(orderVO);
+    }
+
+    //订单列表
+    @GetMapping("/{productIds}")
+    public ResultVO<List<ProductInfo>> getProductsByIds(@PathVariable("productIds") String[] productIds) {
+        return ResultVOUtil.success(productClient.getProductsByIds(productIds));
     }
 
 
