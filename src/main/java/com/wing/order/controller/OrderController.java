@@ -1,6 +1,7 @@
 package com.wing.order.controller;
 
 import com.wing.order.client.ProductClient;
+import com.wing.order.config.EnvConfig;
 import com.wing.order.converter.OrderRequestToOrderVOConverter;
 import com.wing.order.entity.ProductInfo;
 import com.wing.order.enums.ResultEnum;
@@ -33,6 +34,9 @@ public class OrderController {
 
     @Autowired
     private ProductClient productClient;
+
+    @Autowired
+    private EnvConfig envConfig;
 
     //创建订单
     @PostMapping
@@ -72,6 +76,9 @@ public class OrderController {
         return ResultVOUtil.success(productClient.getProductsByIds(productIds));
     }
 
-
+    @GetMapping("/env")
+    public ResultVO<String> getEnv() {
+        return ResultVOUtil.success(envConfig.getArg());
+    }
 
 }
